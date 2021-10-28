@@ -1,80 +1,68 @@
 import './App.css';
 import { Component } from 'react';
-import {v4 as uuid} from 'uuid';
+import ContactForm from './components/ContactForm/ContactForm';
+import ContactsList from './components/ContactsList/ContactsList';
+import Filter from './components/Filter/Filter';
 
-
-
-
-
-
-class App extends Component {
+export default class App extends Component {
   state = {
-    contacts: [] ,
+    contacts: [
+      { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
+      { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
+      { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
+      { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
+    ],
+    filter: '',
     name: '',
     number: '',
+  };
 
-    contact: null,
-  }
+  addNewContact =obj => {
+    const { contacts } = this.state;
+    const { name } =obj;
+    if (contacts.some(({ name }) => name ===obj.name)) {
+      alert(`Sorry, ${name} is already in contacts list`);
+      return;
+    }
+    this.setState(({ contacts }) => {
+      return {
+        contacts: [...contacts, obj],
+      };
+    });
+  };
 
-handleChange =(e) => {
-  console.log(e.target.value)
-  this.setState({
-    [e.target.name]: e.target.value
-  });
-};
+  handleDelContact = contactId => {
+    this.setState(prevState => ({
+      contacts: prevState.contacts.filter(contact => contact.id !== contactId),
+    }));
+  };
 
-handleSubmit =(e) =>{
-  e.preventDefault();
-  const obj = {
-    name: this.state.name,
-    number:this.state.number
-  }
-  this.setState({contact: obj})
-  this.resetForm();
-}
+  onChangeFilter = e => {
+    this.setState({ filter: e.target.value });
+  };
+  getFilteredContacts = () => {
+    const { contacts, filter } = this.state;
+    const normalizedFilter = filter.toLowerCase();
 
-resetForm = () => {
-  this.setState({ ...this.state });
-};
-
-prodIdname = uuid();
-prodIdnumber = uuid();
+    return contacts.filter(contact =>
+      contact.name.toLowerCase().includes(normalizedFilter),
+    );
+  };
   render() {
-    return(
-      <><form onSubmit = {this.handleSubmit}>
-        <h1>Phonebook</h1>
-      <label htmlFor = {this.prodIdname}>Name</label>
-      <input
-        type="text"
-        name="name"
-        id = {this.prodIdname}
-        pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
-        title="Имя может состоять только из букв, апострофа, тире и пробелов. Например Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan и т. п."
-        onChange ={this.handleChange}
-        required />
-        <br/>
-        <label htmlFor = {this.prodIdnumber}>Number</label>
-        <input
-        type="tel"
-        name ="number"
-        id={this.prodIdnumber}
-        onChange ={this.handleChange}
-        pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
-        title="Номер телефона должен состоять цифр и может содержать пробелы, тире, круглые скобки и может начинаться с +"
-        required
-        />
-        <br/>
-        <button type="submit">Add Contact</button>
-      </form>
-      <h2>Contacts</h2>
-        <p>{this.state.contacts.name}</p>
-        </>
-    )
+    const { filter } = this.state;
+    const { handleDelContact, addNewContact, onChangeFilter } = this;
+    const visibleContacts = this.getFilteredContacts();
+    return (
+      <div className="App">
+        <h2>Phonebook</h2>
+        <ContactForm addNewContact={addNewContact} />
+        <h2>Contacts</h2>
+        <Filter filter={filter} onChange={onChangeFilter} />
+        <ContactsList contacts={visibleContacts} handleDelContact={handleDelContact} />
+      </div>
+    );
   }
 }
 
 
 
-
-
-export default App;
